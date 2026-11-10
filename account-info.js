@@ -77,10 +77,6 @@ async function getVipShopInfo(page) {
 
   const season = j.fashion_season_data ?? {};
   const chests = season.season_chests_data ?? {};
-  const claimable = (list) =>
-    (list ?? [])
-      .filter((c) => String(c.status) === '1')
-      .map((c) => c.level ?? 'repeatable');
 
   return {
     currencies: {
@@ -94,9 +90,7 @@ async function getVipShopInfo(page) {
     },
     season: {
       achievementsWaiting: domAchievements(html),
-      unclaimedChests: chests.seasons_total_unclaimed_count ?? null,
-      claimableFreeLevels: claimable(chests.free),
-      claimablePremiumLevels: claimable(chests.premium)
+      unclaimedChests: chests.seasons_total_unclaimed_count ?? null
     },
     identity: {
       ladyId: j.id ?? domLadyId(html),
@@ -212,11 +206,7 @@ module.exports = async function runAccountInfo(page) {
   }
   if (s) {
     console.log(`🏆 Achievements waiting: ${s.achievementsWaiting}`);
-    console.log(
-      `🎁 Unclaimed season chests: ${s.unclaimedChests}` +
-      ` | free levels: [${s.claimableFreeLevels.join(', ')}]` +
-      ` | premium levels: [${s.claimablePremiumLevels.join(', ')}]`
-    );
+    console.log(`🎁 Unclaimed season chests: ${s.unclaimedChests}`);
   }
   if (p) {
     console.log(`📈 Stats (FP to spend: ${p.fpAvailable})`);
@@ -229,7 +219,8 @@ module.exports = async function runAccountInfo(page) {
   }
 
   // ---------- Machine-readable line (for the Google Sheet parser) ----------
-  payload.errors = errors;
+  // errorCount is a plain number, so the line has no [ ] for GitHub to mask as ***
+  payload.errorCount = errors.length;
   console.log(`LP_INFO_JSON ${JSON.stringify(payload)}`);
   console.log(DIVIDER);
 
